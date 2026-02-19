@@ -112,15 +112,15 @@ const PuterImageGenerator = () => {
   return (
     <section className="w-full max-w-4xl space-y-6 rounded-[32px] border border-slate-800/60 bg-slate-900/80 p-8 shadow-[0_20px_60px_rgba(15,23,42,0.6)]">
       <div className="flex flex-col gap-1">
-        <p className="text-sm uppercase tracking-[0.3em] text-cyan-400">
+        <p className="text-sm uppercase tracking-[0.3em] text-slate-400">
           Puter4imageLLMs
         </p>
         <h2 className="text-3xl font-semibold text-white sm:text-4xl">
-          Crie imagens com qualquer modelo do Puter
+          Gerar imagens com Puter
         </h2>
-        <p className="text-base text-slate-300">
-          Ajuste o prompt, troque o modelo e insira o token quando quiser explorar
-          novas variações. A imagem é renderizada assim que a chamada finalizar.
+        <p className="text-sm text-slate-400">
+          Prompt e modelo vão direto para o puter.ai.txt2img; o token fica apenas
+          como campo extra por enquanto.
         </p>
       </div>
 
@@ -130,12 +130,12 @@ const PuterImageGenerator = () => {
           <Textarea
             value={prompt}
             onChange={(event) => setPrompt(event.target.value)}
-            placeholder="Descreva a cena que você imagina..."
+            placeholder="Descreva o que você quer ver."
             className="min-h-[140px] rounded-2xl border border-slate-700 bg-slate-950/40 text-base text-white focus:border-cyan-400 focus:ring-0"
             required
           />
           <p className="text-xs text-slate-400">
-            O prompt é obrigatório para iniciar a geração.
+            Sem prompt não há geração.
           </p>
         </div>
 
@@ -149,21 +149,21 @@ const PuterImageGenerator = () => {
               className="rounded-2xl border border-slate-700 bg-slate-950/40 text-white placeholder:text-slate-500 focus:border-cyan-400 focus:ring-0"
             />
             <p className="text-xs text-slate-400">
-              Troque por qualquer modelo compatível (ex.: gemini-2.5-flash-image-preview).
+              Qualquer modelo válido do Puter, como gemini-2.5-flash-image-preview.
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-semibold text-slate-200">Token (futuro)</Label>
+            <Label className="text-sm font-semibold text-slate-200">Token (opcional)</Label>
             <Input
               type="password"
               value={token}
               onChange={(event) => setToken(event.target.value)}
-              placeholder="Opção para inserir token no futuro"
+              placeholder="Campo pronto para token"
               className="rounded-2xl border border-slate-700 bg-slate-950/40 text-white focus:border-cyan-400 focus:ring-0"
             />
             <p className="text-xs text-slate-400">
-              Nenhum token é enviado hoje; o campo está preparado para integrações futuras.
+              O valor não é usado hoje; mantenha limpo ou deixe em branco.
             </p>
           </div>
         </div>
@@ -177,14 +177,14 @@ const PuterImageGenerator = () => {
             {scriptLoaded ? (isLoading ? "Gerando..." : "Gerar imagem") : "Carregando Puter..."}
           </Button>
           {!scriptLoaded && (
-            <p className="text-center text-xs text-amber-300">
-              Aguarde enquanto carregamos o SDK oficial do Puter.
+            <p className="text-center text-xs text-slate-400">
+              Aguarde enquanto o script oficial carrega.
             </p>
           )}
         </div>
       </form>
 
-      <div className="rounded-3xl border border-slate-800/80 bg-gradient-to-br from-slate-950/40 to-slate-900/40 p-4">
+      <div className="rounded-3xl border border-slate-800/80 bg-slate-950/50 p-4">
         <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
           Pré-visualização
         </p>
@@ -198,8 +198,8 @@ const PuterImageGenerator = () => {
             />
           ) : (
             <div className="flex h-full flex-col items-center justify-center space-y-2 text-sm text-slate-400">
-              <p>Nenhuma imagem gerada ainda.</p>
-              <p>Preencha o prompt e clique em gerar para ver o resultado aqui.</p>
+              <p>Sem imagem gerada ainda.</p>
+              <p>Envie um prompt e clique em gerar.</p>
             </div>
           )}
         </div>
@@ -215,7 +215,7 @@ const PuterImageGenerator = () => {
           </pre>
         ) : (
           <p className="text-slate-500">
-            As mensagens de erro aparecem aqui sem filtros para facilitar o diagnóstico.
+            Erros aparecem aqui sem filtros.
           </p>
         )}
       </div>
