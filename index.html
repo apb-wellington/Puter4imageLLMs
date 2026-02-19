@@ -5,119 +5,254 @@
   <title>Puter Image LLMs</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Bootstrap -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
 
- <style>
+  <style>
+    :root {
+      --color-background: #050a10;
+      --color-surface: #11161f;
+      --color-surface-elevated: #1a202c;
+      --color-border: #2e3541;
+      --color-primary: #40b26d;
+      --color-primary-hover: #34a35c;
+      --color-muted: #8b949e;
+      --color-error: #ff6b6b;
+      --color-text: #e6edf3;
+      --radius-lg: 18px;
+      --radius-sm: 10px;
+      --shadow-soft: 0 20px 45px rgba(5, 10, 16, 0.35);
+      --spacing: 1.25rem;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      background-color: #0d1117;
-      color: #e6edf3;
+      margin: 0;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      background: radial-gradient(circle at top, rgba(64, 178, 109, 0.15), transparent 45%), var(--color-background);
+      color: var(--color-text);
+      min-height: 100vh;
     }
-    .card {
-      background-color: #161b22;
-      border: 1px solid #30363d;
+
+    .page {
+      width: min(1200px, 100%);
+      margin: 0 auto;
+      padding: calc(var(--spacing) * 1.5) var(--spacing);
     }
-    label {
-      color: #e6edf3;
+
+    .hero {
+      text-align: center;
+      margin-bottom: calc(var(--spacing) * 1.5);
     }
-    textarea, select, input {
-      background-color: #0d1117 !important;
-      color: #e6edf3 !important;
-      border: 1px solid #30363d !important;
+
+    .hero h1 {
+      font-size: clamp(2.2rem, 4vw, 3rem);
+      margin-bottom: 0.4rem;
     }
-    textarea::placeholder, input::placeholder {
-      color: #8b949e;
+
+    .hero p {
+      color: var(--color-muted);
+      max-width: 640px;
+      margin: 0 auto;
+      font-size: 1rem;
     }
-    button {
-      background-color: #238636;
+
+    .surface {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      padding: calc(var(--spacing) * 1.25);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(12px);
+    }
+
+    .surface--card {
+      display: grid;
+      gap: var(--spacing);
+    }
+
+    .surface h3 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .form-field label {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--color-text);
+    }
+
+    .form-control {
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+      background: var(--color-surface-elevated);
+      color: var(--color-text);
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(64, 178, 109, 0.18);
+    }
+
+    textarea.form-control {
+      min-height: 140px;
+      resize: vertical;
+    }
+
+    .button {
       border: none;
-      color: #ffffff;
+      border-radius: var(--radius-sm);
+      background: var(--color-primary);
+      color: #fff;
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.15s ease;
+      width: 100%;
     }
-    button:disabled {
-      background-color: #30363d;
+
+    .button:disabled {
+      background: var(--color-border);
+      cursor: not-allowed;
     }
+
+    .button:not(:disabled):hover {
+      background: var(--color-primary-hover);
+      transform: translateY(-1px);
+    }
+
+    #result {
+      min-height: 220px;
+      border-radius: var(--radius-sm);
+      border: 1px dashed var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing);
+      background: linear-gradient(135deg, rgba(64, 178, 109, 0.08), transparent);
+    }
+
     #result img {
       max-width: 100%;
-      border: 1px solid #30363d;
-      margin-top: 20px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
     }
+
     pre {
-      background: #0d1117;
-      border: 1px solid #30363d;
-      padding: 10px;
-      color: #ff7b72;
+      background: var(--color-surface-elevated);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 0.9rem;
+      color: var(--color-error);
+      min-height: 60px;
+      margin: 0;
+      font-size: 0.95rem;
+      overflow-x: auto;
+    }
+
+    @media (max-width: 640px) {
+      .surface {
+        padding: 1rem;
+      }
+
+      #result {
+        min-height: 180px;
+      }
     }
   </style>
 </head>
 <body>
 
-<div class="container mt-5">
-  <div class="card p-4">
-    <h3 class="mb-3">Puter Image Generator</h3>
+  <main class="page">
+    <section class="hero">
+      <h1>Puter Image Generator</h1>
+      <p>Transforme prompts em imagens impressionantes com modelos avançados de IA. Escolha o modelo, personalize o prompt e receba a ilustração diretamente.</p>
+    </section>
 
-    <div class="mb-3">
-      <label class="form-label">Prompt</label>
-      <textarea id="prompt" class="form-control" rows="4">Uma ilustração de um pangolim heróico em estilo cartoon</textarea>
-    </div>
+    <section class="surface surface--card">
+      <div>
+        <h3>Gerar imagem</h3>
+        <p style="color: var(--color-muted); margin: 0.4rem 0 0;">Selecione o modelo desejado e descreva a cena para ver o resultado em segundos.</p>
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label">Model</label>
-      <select id="model" class="form-select">
-        <option>black-forest-labs/flux.1-dev</option>
-        <option>black-forest-labs/flux.1-pro</option>
-        <option>black-forest-labs/flux.2-dev</option>
-        <option>black-forest-labs/flux.2-pro</option>
-        <option>openai/dall-e-3</option>
-        <option>stabilityai/stable-diffusion-3-medium</option>
-        <option>stabilityai/stable-diffusion-xl-base-1.0</option>
-        <option>ideogram/ideogram-3.0</option>
-        <option selected>google/gemini-3-pro-image-preview</option>
-        <option>google/gemini-2.5-flash-image</option>
-      </select>
-    </div>
+      <div class="form-field">
+        <label for="prompt">Prompt</label>
+        <textarea id="prompt" class="form-control" rows="4">Uma ilustração de um pangolim heróico em estilo cartoon</textarea>
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label">Token (placeholder)</label>
-      <input id="token" type="password" class="form-control" placeholder="insira o Auth Token Puter">
-    </div>
+      <div class="form-field">
+        <label for="model">Model</label>
+        <select id="model" class="form-control">
+          <option>black-forest-labs/flux.1-dev</option>
+          <option>black-forest-labs/flux.1-pro</option>
+          <option>black-forest-labs/flux.2-dev</option>
+          <option>black-forest-labs/flux.2-pro</option>
+          <option>openai/dall-e-3</option>
+          <option>stabilityai/stable-diffusion-3-medium</option>
+          <option>stabilityai/stable-diffusion-xl-base-1.0</option>
+          <option>ideogram/ideogram-3.0</option>
+          <option selected>google/gemini-3-pro-image-preview</option>
+          <option>google/gemini-2.5-flash-image</option>
+        </select>
+      </div>
 
-    <button id="generate" class="btn btn-success w-100">Gerar imagem</button>
+      <div class="form-field">
+        <label for="token">Token (placeholder)</label>
+        <input id="token" type="password" class="form-control" placeholder="insira o Auth Token Puter">
+      </div>
 
-    <div id="result" class="text-center mt-4"></div>
-    <pre id="error" class="mt-3"></pre>
-  </div>
-</div>
+      <button id="generate" class="button">Gerar imagem</button>
 
-<script src="https://js.puter.com/v2/"></script>
+      <div id="result" class="text-center mt-4"></div>
+      <pre id="error"></pre>
+    </section>
+  </main>
 
-<script>
-  const btn = document.getElementById("generate");
-  const promptInput = document.getElementById("prompt");
-  const modelInput = document.getElementById("model");
-  const resultDiv = document.getElementById("result");
-  const errorDiv = document.getElementById("error");
+  <script src="https://js.puter.com/v2/"></script>
 
-  btn.onclick = async () => {
-    resultDiv.innerHTML = "";
-    errorDiv.textContent = "";
-    btn.disabled = true;
-    btn.textContent = "Gerando...";
+  <script>
+    const btn = document.getElementById("generate");
+    const promptInput = document.getElementById("prompt");
+    const modelInput = document.getElementById("model");
+    const resultDiv = document.getElementById("result");
+    const errorDiv = document.getElementById("error");
 
-    const prompt = promptInput.value;
-    const model = modelInput.value;
+    btn.onclick = async () => {
+      resultDiv.innerHTML = "";
+      errorDiv.textContent = "";
+      btn.disabled = true;
+      btn.textContent = "Gerando...";
 
-    try {
-      const img = await puter.ai.txt2img(prompt, { model });
-      resultDiv.appendChild(img);
-    } catch (err) {
-      console.error(err);
-      errorDiv.textContent = err.message || JSON.stringify(err, null, 2);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "Gerar imagem";
-    }
-  };
-</script>
+      const prompt = promptInput.value;
+      const model = modelInput.value;
+
+      try {
+        const img = await puter.ai.txt2img(prompt, { model });
+        resultDiv.appendChild(img);
+      } catch (err) {
+        console.error(err);
+        errorDiv.textContent = err.message || JSON.stringify(err, null, 2);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Gerar imagem";
+      }
+    };
+  </script>
 
 </body>
 </html>
