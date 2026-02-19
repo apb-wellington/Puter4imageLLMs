@@ -1,13 +1,85 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dyad-generated-app</title>
-  </head>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Puter Image Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+    }
+    textarea, input, button {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+      font-size: 14px;
+    }
+    button {
+      cursor: pointer;
+    }
+    #result img {
+      max-width: 100%;
+      margin-top: 20px;
+      border: 1px solid #ccc;
+    }
+    #error {
+      color: red;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+  <h1>Puter Image Generator</h1>
+
+  <label>Prompt</label>
+  <textarea id="prompt" rows="4">Uma ilustração de um pangolim heróico em estilo cartoon</textarea>
+
+  <label>Model</label>
+  <input id="model" value="gemini-3-pro-image-preview" />
+
+  <label>Token (opcional / futuro)</label>
+  <input id="token" type="password" placeholder="não usado ainda" />
+
+  <button id="generate">Gerar imagem</button>
+
+  <div id="result"></div>
+  <pre id="error"></pre>
+
+  <script src="https://js.puter.com/v2/"></script>
+  <script>
+    const btn = document.getElementById("generate");
+    const promptInput = document.getElementById("prompt");
+    const modelInput = document.getElementById("model");
+    const tokenInput = document.getElementById("token");
+    const resultDiv = document.getElementById("result");
+    const errorDiv = document.getElementById("error");
+
+    btn.onclick = async () => {
+      resultDiv.innerHTML = "";
+      errorDiv.textContent = "";
+      btn.disabled = true;
+      btn.textContent = "Gerando...";
+
+      const prompt = promptInput.value;
+      const model = modelInput.value;
+
+      try {
+        const img = await puter.ai.txt2img(prompt, {
+          model: model
+        });
+
+        resultDiv.appendChild(img);
+      } catch (err) {
+        console.error(err);
+        errorDiv.textContent = String(err);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Gerar imagem";
+      }
+    };
+  </script>
+
+</body>
 </html>
