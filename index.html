@@ -145,12 +145,17 @@
       justify-content: center;
       padding: var(--spacing);
       background: linear-gradient(135deg, rgba(64, 178, 109, 0.08), transparent);
+      position: relative;
+      overflow: hidden;
     }
 
-    #result img {
+    #result img,
+    #result video {
       max-width: 100%;
+      max-height: 420px;
       border-radius: var(--radius-sm);
       border: 1px solid var(--color-border);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.45);
     }
 
     pre {
@@ -163,6 +168,121 @@
       margin: 0;
       font-size: 0.95rem;
       overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .mode-selector {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .mode-selector label {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 0.8rem;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .mode-selector input[type="radio"] {
+      accent-color: var(--color-primary);
+    }
+
+    .mode-selector input:checked + span,
+    .mode-selector label input:checked {
+      border-color: var(--color-primary);
+    }
+
+    .mode-selector label input:checked {
+      background: transparent;
+    }
+
+    .image-preview {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
+      background: var(--color-surface-elevated);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .image-preview img {
+      width: 100%;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+      max-height: 280px;
+      object-fit: contain;
+    }
+
+    .range-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .range-wrapper span {
+      font-size: 0.85rem;
+      color: var(--color-muted);
+    }
+
+    #toast-container {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    .toast {
+      padding: 0.8rem 1rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      min-width: 240px;
+      font-size: 0.95rem;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--color-text);
+      pointer-events: auto;
+    }
+
+    .toast--info {
+      border-color: rgba(64, 178, 109, 0.5);
+      background: rgba(64, 178, 109, 0.1);
+    }
+
+    .toast--success {
+      border-color: rgba(72, 187, 120, 0.6);
+      background: rgba(72, 187, 120, 0.14);
+    }
+
+    .toast--error {
+      border-color: rgba(255, 107, 107, 0.7);
+      background: rgba(255, 107, 107, 0.13);
+    }
+
+    .toast.toast--visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .hidden {
+      display: none;
     }
 
     @media (max-width: 640px) {
@@ -173,11 +293,14 @@
       #result {
         min-height: 180px;
       }
+
+      .mode-selector {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
-
   <main class="page">
     <section class="hero">
       <h1>Puter Image Generator</h1>
@@ -186,8 +309,8 @@
 
     <section class="surface surface--card">
       <div>
-        <h3>Gerar imagem</h3>
-        <p style="color: var(--color-muted); margin: 0.4rem 0 0;">Selecione o modelo desejado e descreva a cena para ver o resultado em segundos.</p>
+        <h3>Gerar/retocar imagem ou vídeo</h3>
+        <p style="color: var(--color-muted); margin: 0.4rem 0 0;">Selecione o modelo desejado, o tipo de geração e ajuste os campos necessários para receber o resultado.</p>
       </div>
 
       <div class="form-field">
@@ -196,7 +319,7 @@
       </div>
 
       <div class="form-field">
-        <label for="model">Model</label>
+        <label for="model">Modelo</label>
         <select id="model" class="form-control">
           <option>black-forest-labs/flux.1-dev</option>
           <option>black-forest-labs/flux.1-pro</option>
@@ -212,46 +335,284 @@
       </div>
 
       <div class="form-field">
-        <label for="token">Token (placeholder)</label>
-        <input id="token" type="password" class="form-control" placeholder="insira o Auth Token Puter">
+        <label>Tipo de geração</label>
+        <div class="mode-selector">
+          <label>
+            <input type="radio" name="mode" value="text" checked />
+            <span>Texto → Imagem</span>
+          </label>
+          <label>
+            <input type="radio" name="mode" value="image" />
+            <span>Imagem → Imagem</span>
+          </label>
+          <label>
+            <input type="radio" name="mode" value="video" />
+            <span>Texto → Vídeo</span>
+          </label>
+        </div>
       </div>
 
-      <button id="generate" class="button">Gerar imagem</button>
+      <div class="form-field hidden" data-mode="image">
+        <label for="imageUpload">Upload da imagem base (imagem → imagem)</label>
+        <input id="imageUpload" type="file" accept="image/*" class="form-control" />
+        <div class="image-preview hidden" id="previewWrapper">
+          <span style="font-size: 0.85rem; color: var(--color-muted);">Pré-visualização da imagem base</span>
+          <img id="imagePreview" alt="Prévia da imagem carregada" src="" />
+        </div>
+        <div class="range-wrapper">
+          <input id="strength" type="range" min="0.1" max="1" step="0.1" value="0.6" />
+          <span id="strengthValue">Força da alteração: 0.6</span>
+        </div>
+      </div>
+
+      <div class="form-field hidden" data-mode="video">
+        <label>Duração e qualidade (texto → vídeo)</label>
+        <div class="range-wrapper">
+          <input id="videoDuration" type="number" min="1" max="30" step="1" value="6" class="form-control" />
+          <span style="font-size: 0.85rem; color: var(--color-muted);">Duração (segundos)</span>
+        </div>
+        <div class="range-wrapper">
+          <input id="videoFps" type="number" min="12" max="60" step="1" value="24" class="form-control" />
+          <span style="font-size: 0.85rem; color: var(--color-muted);">Frames por segundo</span>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="token">Token Puter</label>
+        <input id="token" type="password" class="form-control" placeholder="Cole seu token Puter aqui" />
+      </div>
+
+      <button id="generate" class="button" type="button">Gerar imagem</button>
 
       <div id="result" class="text-center mt-4"></div>
-      <pre id="error"></pre>
+      <pre id="error" aria-live="polite"></pre>
     </section>
   </main>
+
+  <div id="toast-container" aria-live="polite"></div>
 
   <script src="https://js.puter.com/v2/"></script>
 
   <script>
-    const btn = document.getElementById("generate");
-    const promptInput = document.getElementById("prompt");
-    const modelInput = document.getElementById("model");
-    const resultDiv = document.getElementById("result");
-    const errorDiv = document.getElementById("error");
+    const toastContainer = document.getElementById('toast-container');
+    const showToast = (message, type = 'info') => {
+      const toast = document.createElement('div');
+      toast.className = `toast toast--${type}`;
+      toast.textContent = message;
+      toastContainer.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.add('toast--visible'));
+      setTimeout(() => {
+        toast.classList.remove('toast--visible');
+        toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+      }, 3600);
+    };
 
-    btn.onclick = async () => {
-      resultDiv.innerHTML = "";
-      errorDiv.textContent = "";
-      btn.disabled = true;
-      btn.textContent = "Gerando...";
+    const getAIClient = () => {
+      if (!window.puter || !window.puter.ai) {
+        throw new Error('O script do Puter não foi carregado corretamente.');
+      }
+      return window.puter.ai;
+    };
 
-      const prompt = promptInput.value;
-      const model = modelInput.value;
+    const modeRadios = document.querySelectorAll('input[name="mode"]');
+    const imageOptions = document.querySelector('[data-mode="image"]');
+    const videoOptions = document.querySelector('[data-mode="video"]');
+    const previewWrapper = document.getElementById('previewWrapper');
+    const previewImage = document.getElementById('imagePreview');
+    const fileInput = document.getElementById('imageUpload');
+    const strengthInput = document.getElementById('strength');
+    const strengthValue = document.getElementById('strengthValue');
+    const durationInput = document.getElementById('videoDuration');
+    const fpsInput = document.getElementById('videoFps');
+    const promptInput = document.getElementById('prompt');
+    const modelInput = document.getElementById('model');
+    const tokenInput = document.getElementById('token');
+    const resultDiv = document.getElementById('result');
+    const errorDiv = document.getElementById('error');
+    const generateButton = document.getElementById('generate');
 
-      try {
-        const img = await puter.ai.txt2img(prompt, { model });
-        resultDiv.appendChild(img);
-      } catch (err) {
-        console.error(err);
-        errorDiv.textContent = err.message || JSON.stringify(err, null, 2);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "Gerar imagem";
+    let currentMode = 'text';
+    let uploadedFile = null;
+    let previewUrl = '';
+
+    const modeLabels = {
+      text: 'Gerar imagem',
+      image: 'Retocar imagem',
+      video: 'Gerar vídeo'
+    };
+
+    const updateMode = () => {
+      const selected = document.querySelector('input[name="mode"]:checked');
+      currentMode = selected ? selected.value : 'text';
+      imageOptions.classList.toggle('hidden', currentMode !== 'image');
+      videoOptions.classList.toggle('hidden', currentMode !== 'video');
+      imageOptions.hidden = currentMode !== 'image';
+      videoOptions.hidden = currentMode !== 'video';
+      if (currentMode !== 'image') {
+        previewWrapper.classList.add('hidden');
+      }
+      generateButton.textContent = modeLabels[currentMode];
+    };
+
+    const formatStrengthLabel = () => {
+      strengthValue.textContent = `Força da alteração: ${strengthInput.value}`;
+    };
+
+    const handleFileChange = () => {
+      const file = fileInput.files ? fileInput.files[0] : null;
+      if (file) {
+        uploadedFile = file;
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+        }
+        previewUrl = URL.createObjectURL(file);
+        previewImage.src = previewUrl;
+        previewImage.alt = `Prévia de ${file.name}`;
+        previewWrapper.classList.remove('hidden');
+      } else {
+        uploadedFile = null;
+        previewWrapper.classList.add('hidden');
+        previewImage.src = '';
       }
     };
+
+    const cleanResult = () => {
+      resultDiv.innerHTML = '';
+    };
+
+    const renderFromUrl = (url, isVideo = false) => {
+      if (!url) {
+        return;
+      }
+      const element = document.createElement(isVideo ? 'video' : 'img');
+      element.src = url;
+      element.decoding = 'async';
+      element.loading = 'lazy';
+      if (isVideo) {
+        element.autoplay = true;
+        element.loop = true;
+        element.controls = true;
+        element.muted = true;
+      }
+      resultDiv.appendChild(element);
+    };
+
+    const renderFromBlob = (blob) => {
+      if (!blob) {
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      const isVideo = blob.type.startsWith('video');
+      renderFromUrl(url, isVideo);
+    };
+
+    const renderResult = (media) => {
+      cleanResult();
+      const payloads = Array.isArray(media) ? media : [media];
+      let appended = false;
+      payloads.forEach((item) => {
+        if (!item) return;
+        if (item instanceof HTMLElement) {
+          resultDiv.appendChild(item);
+          appended = true;
+          return;
+        }
+        if (item instanceof Blob) {
+          renderFromBlob(item);
+          appended = true;
+          return;
+        }
+        const candidate = typeof item === 'string' ? item : item?.url ?? item?.output?.url ?? item?.output?.[0]?.url;
+        if (candidate) {
+          const isVideo = typeof item === 'object' && (item.type?.startsWith?.('video') || candidate.startsWith('data:video'));
+          renderFromUrl(candidate, isVideo);
+          appended = true;
+        }
+      });
+      if (!appended) {
+        const placeholder = document.createElement('span');
+        placeholder.textContent = 'Nenhum resultado retornado.';
+        placeholder.style.color = 'var(--color-muted)';
+        resultDiv.appendChild(placeholder);
+      }
+    };
+
+    const getOptions = () => {
+      const options = { model: modelInput.value };
+      const token = tokenInput.value.trim();
+      if (token) {
+        options.token = token;
+      }
+      return options;
+    };
+
+    const getMode = () => currentMode;
+
+    const handleGenerate = () => {
+      const prompt = promptInput.value.trim();
+      if (!prompt) {
+        showToast('Preencha um prompt para prosseguir.', 'error');
+        errorDiv.textContent = 'O prompt não pode ficar vazio.';
+        return;
+      }
+
+      if (currentMode === 'image' && !uploadedFile) {
+        showToast('Faça upload de uma imagem para continuar.', 'error');
+        errorDiv.textContent = 'Envie um arquivo de imagem para aplicar o efeito.';
+        return;
+      }
+
+      cleanResult();
+      errorDiv.textContent = '';
+      const ai = getAIClient();
+      const options = getOptions();
+      let request;
+
+      if (currentMode === 'text') {
+        request = ai.txt2img(prompt, options);
+      } else if (currentMode === 'image') {
+        const strength = Number(strengthInput.value);
+        request = ai.img2img(prompt, uploadedFile, { ...options, strength });
+      } else {
+        const duration = Number(durationInput.value);
+        const fps = Number(fpsInput.value);
+        request = ai.txt2video(prompt, { ...options, duration, fps });
+      }
+
+      const runningLabel = currentMode === 'video' ? 'Gerando vídeo...' : currentMode === 'image' ? 'Retocando imagem...' : 'Gerando imagem...';
+      generateButton.disabled = true;
+      generateButton.textContent = runningLabel;
+      showToast(runningLabel, 'info');
+
+      request
+        .then((media) => {
+          renderResult(media);
+          showToast(currentMode === 'video' ? 'Vídeo pronto!' : 'Resultado pronto!', 'success');
+        })
+        .catch((err) => {
+          const message = err?.message || 'Erro ao gerar o conteúdo.';
+          errorDiv.textContent = message;
+          showToast(message, 'error');
+          throw err;
+        })
+        .finally(() => {
+          generateButton.disabled = false;
+          generateButton.textContent = modeLabels[currentMode];
+        });
+    };
+
+    modeRadios.forEach((radio) => {
+      radio.addEventListener('change', () => {
+        updateMode();
+      });
+    });
+
+    strengthInput.addEventListener('input', formatStrengthLabel);
+    fileInput.addEventListener('change', handleFileChange);
+    generateButton.addEventListener('click', handleGenerate);
+
+    updateMode();
+    formatStrengthLabel();
   </script>
 
 </body>
