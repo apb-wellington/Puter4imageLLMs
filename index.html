@@ -73,7 +73,9 @@
         resultDiv.appendChild(img);
       } catch (err) {
         console.error(err);
-        errorDiv.textContent = String(err);
+        errorDiv.textContent = err.message || JSON.stringify(err, null, 2);
+      } finally {
+
       } finally {
         btn.disabled = false;
         btn.textContent = "Gerar imagem";
